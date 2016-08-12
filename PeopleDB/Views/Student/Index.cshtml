@@ -1,0 +1,104 @@
+﻿@model PagedList.IPagedList<PeopleDB.Models.Student>
+@using PeopleDB.Models;
+@using PagedList.Mvc;
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+
+<script src="~/Scripts/angular.min.js"></script>
+<script src="~/Scripts/PeopleApp/AngularController.js"></script>
+<script src="~/Scripts/PeopleApp/APICallService.js"></script>
+
+@{
+    ViewBag.Title = "Students";    
+}
+
+<h2>Students</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+@using (Html.BeginForm("Index", "Student", FormMethod.Get))
+{
+    <p>
+        Find by name: @Html.TextBox("SearchString", ViewBag.CurrentFilter as string)
+        <input type="submit" value="Search" />
+    </p>
+}
+
+@* //Angular app (ng-app) decleration*@
+<div ng-app="App">
+    @*Angular controller (ng-controller) decleration*@
+    <div style="padding:25px;" class="panel-body" ng-controller="AppController">
+        <p class="bg-primary"><span>{{message}}</span></p>
+        <br />
+        @*Loading Dropdown on page load event by using angular http get call*@
+        <div class="col-md-12">
+            <div class="form-group row">
+                <div class="col-sm-4" style="padding-right: 0;">
+                    <select style="padding: 3px 3px" id="SearchBox" class="form-control" ng-model="ppl" ng-options="ppl.Names for ppl  in PeopleList" ng-change="handleChange()">
+                        <option value="">Select People</option>
+                    </select>
+                   @* <button id="btnPostCall" class="btn btn-default" ng-click="btnPostCall()">Search</button>*@
+                </div>
+            </div>
+        </div>
+        <br />
+      
+    </div>
+</div>
+
+    <table class="table">
+        <tr>
+            <th>
+                @Html.ActionLink("Last Name", "Index", new { sortOrder = ViewBag.NameSortParm, currentFilter = ViewBag.CurrentFilter })
+            </th>
+            <th>
+                First Name
+            </th>
+            <th>
+                @Html.ActionLink("Birth Date", "Index", new { sortOrder = ViewBag.DateSortParm, currentFilter = ViewBag.CurrentFilter })
+            </th>
+            <th></th>
+        </tr>
+
+        @{int i = 1;}
+        @foreach (var item in Model)
+        {
+           
+            @*@if(item.ID == 2000)
+                {
+
+                }*@
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LastName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FirstMidName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BirthDate)
+                </td>
+                @if (item.Files.Any(f => f.FileType == FileType.Avatar))
+                {
+                    <td>
+                        Avatar
+                    </td>
+                    <td>
+                        <img src="~/File?id=@(i)" alt="avatar" />
+                    </td>
+                }
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { id = item.ID }) |
+                    @Html.ActionLink("Details", "Details", new { id = item.ID }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = item.ID })
+                </td>
+            </tr>
+            i++;
+        }
+
+    </table>
+    <br />
+    Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+
+    @Html.PagedListPager(Model, page => Url.Action("Index",
+    new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }))
